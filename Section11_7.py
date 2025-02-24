@@ -1,6 +1,7 @@
 import streamlit as st
 import random as rd
 import numpy as np
+import re
 
 
 def section_11_7():
@@ -124,9 +125,11 @@ def rec_to_cyl():
     st.subheader("Rectangular to Cylindrical Coordinate Equation")
     st.write("Find an equation in cylindrical coordinates for the equation given in rectangular coordinates")
     st.latex(fr"z = x^2 + y^2 + {constant}")
-    ans = st.text_input("Answer: ", key="rec_to_cyl_answer")
+    raw_ans = st.text_input("Answer: ")
+    # Fix: Remove ALL whitespace characters (including non-breaking spaces)
+    ans = re.sub(r'\s+', '', raw_ans).lower()
     if st.button("Submit Answer", key="rec_to_cyl_submit"):
-        if ans.lower().strip() == f"z = r^2 + {constant}":
+        if ans == f"z = r^2 + {constant}":
             st.success("Correct!")
             del st.session_state.rec_equation_params
         else:
@@ -142,19 +145,22 @@ def cyl_to_rec():
     st.subheader("Rectangular to Cylindrical Coordinate Equation")
     st.write("Find an equation in rectangular coordinates for the equation given in cylindrical coordinates")
     st.latex(fr"r = {r}")
-    ans = st.text_input("Answer: ", key="cyl_to_rec_answer")
+    raw_ans = st.text_input("Answer: ")
+    # Fix: Remove ALL whitespace characters (including non-breaking spaces)
+    ans = re.sub(r'\s+', '', raw_ans).lower()
     if st.button("Submit Answer", key="cyl_to_rec_submit"):
-        if ans.lower().strip() == f"x^2+y^2={r ** 2}":
+        if ans == f"x^2+y^2={r ** 2}":
             st.success("Correct!")
             del st.session_state.cyl_equation_params
         else:
-            st.error("Did you remember to square r?")
+            st.error("Hint:")
+            st.latex("x^2+y^2=r^2")
 
 
 def equation_spherical_to_rectangular():
     if "equation_spherical_to_rec" not in st.session_state:
         st.session_state.equation_spherical_to_rec = {
-            "problem_type": rd.randint(1, 3)
+            "problem_type": rd.randint(1, 2)
         }
 
     if st.button("Generate New Problem"):
@@ -177,14 +183,41 @@ def sph_to_rec_row():
     st.subheader("Spherical to rectangular")
     st.write("Find an equation in rectangular coordinates for the equation given in spherical coordinates")
     st.latex(fr"\rho = {rho}")
-    ans = st.text_input("Answer: ")
+    # Get user input
+    raw_ans = st.text_input("Answer: ")
+    # Fix: Remove ALL whitespace characters (including non-breaking spaces)
+    ans = re.sub(r'\s+', '', raw_ans).lower()
+
     if st.button("Submit Answer"):
-        if ans.lower().strip() == f"x^2+y^2+z^2={rho ** 2}":
+        if ans == f"x^2+y^2+z^2={rho ** 2}":
             st.success("Correct!")
             del st.session_state.sph_equations_rho
         else:
-            st.error("Did you remember to square rho?")
+            st.write(ans)
+            st.error(f"Hint: ")
+            st.latex(r"x^2+y^2+z^2=\rho^2")
 
 
 def rec_to_sph():
-    return
+    margin = 0.5
+    if "rec_to_sph" not in st.session_state:
+        st.session_state.rec_to_sph = {
+            "constant": rd.randint(1, 20)
+        }
+    constant = st.session_state.rec_to_sph["constant"]
+    phi = np.arccos(1 / np.sqrt(1+abs(constant)))
+    st.subheader("Rectangular to spherical")
+    st.write("Find an equation in spherical coordinates for the equation given in rectangular coordinates")
+    st.latex(fr"x^2+y^2+{constant}z^2=0, z>0")
+    user_phi = st.number_input("Input phi value ")
+    if st.button("Submit Answer"):
+        if np.abs(user_phi-phi) <= margin:
+            st.success("Correct!")
+            st.latex(fr"\phi = {phi}")
+            del st.session_state.rec_to_sph
+        else:
+            st.error("Expected: ")
+            st.latex(fr"\phi = {np.round(phi, 2)}")
+            st.write(f"Received: {np.round(user_phi, 2)}")
+            st.write("Hint: ")
+            st.latex(fr"\phi = \arccos(1/ \sqrt(1/1+|{constant}|)")
