@@ -129,7 +129,7 @@ def rec_to_cyl():
     # Fix: Remove ALL whitespace characters (including non-breaking spaces)
     ans = re.sub(r'\s+', '', raw_ans).lower()
     if st.button("Submit Answer", key="rec_to_cyl_submit"):
-        if ans == f"z = r^2 + {constant}":
+        if ans == f"z=r^2+{constant}":
             st.success("Correct!")
             del st.session_state.rec_equation_params
         else:
